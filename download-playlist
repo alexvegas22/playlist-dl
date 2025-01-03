@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+download_playlist(){
+    bar_length=40  # Total length of the loading bar
+    for i in $(seq 1 $bar_length); do
+	# Calculate progress
+	progress=$((i * 100 / bar_length))
+	
+	# Build the bar
+	bar=$(printf "%-${bar_length}s" "#" | tr ' ' '#')
+	printf "\r[%-${bar_length}s] %d%%" "${bar:0:i}" "$progress"
+	
+	sleep 0.1  # Simulate work
+    done
+    echo
+
+    echo "Downloading playlist $playlist"
+    url=$2
+    mkdir -p "$playlist"
+    echo "Creating directory '$playlist'"
+    yt-dlp --ignore-errors --format bestaudio --extract-audio --audio-format mp3 --audio-quality 160K --output "%(playlist_title)s/%(title)s.%(ext)s" --yes-playlist "$url"
+    
+}
+
+while getopts 'p:f:h' OPTION; do
+    case "$OPTION" in
+	p)	    
+	    if [ $# -eq 2 ]; then
+		playlist=$(yt-dlp  --no-warnings --flat-playlist --print "%(playlist_title)s" $2 2>/dev/null | head -1)
+		download_playlist
+	    fi
+	    ;;
+	f)
+	    echo "Downloading playlist from file ${OPTARG}"
+	    while read -r playlist url; do
+		download_playlist
+	    done < ${OPTARG}
+	    ;;
+	h)
+	    echo "script usage: $(basename \$0) [-p foldername url] [-h] [-f file]" >&1
+	    exit 1
+	    ;;
+	?)
+	echo "script usage: $(basename \$0) [-p foldername url] [-h] [-f file]" >&2
+	exit 1
+	;;
+    esac
+done
+shift "$ (($OPTIND -1))"
+
