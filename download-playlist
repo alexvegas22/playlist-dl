@@ -2,16 +2,26 @@
 
 # Function to display a loading bar
 update_loading_bar() {
-    local current=$1
+    local current=$2
     local total=$2
-    local bar_length=40
+    local song_name=$3
+    local bar_length=38
     local progress=$((current * 100 / total))
     local num_hash=$((current * bar_length / total))
     local bar=$(printf "%-${bar_length}s" "#" | tr ' ' '#')
+    local progress_bar="${bar:0:num_hash}"
+    local padding_length=$((bar_length - num_hash))
+    local padded_bar=$(printf "%-${padding_length}s" " ")
+    progress_bar="${progress_bar}${padded_bar}"
+    local title=$(printf "%-${bar_length}s" "$song_name")
+    
+    # Clear the line and move the cursor to the beginning
+    printf "\r\033[K"
 
     # Display the loading bar and progress percentage
-    printf "\r[%-${bar_length}s] %d%% (%d/%d)" "${bar:0:num_hash}" "$progress" "$current" "$total"
+    printf "[%s] %d%% (%d/%d) %s" "$progress_bar" "$progress" "$current" "$total" "$title"
 }
+
 
 # Function to download a playlist
 download_playlist() {
@@ -34,9 +44,8 @@ download_playlist() {
             # Debugging line output
             if [[ "$line" == "[download] Destination:"* ]]; then
                 count=$((count + 1))
-                local song_name=$(echo "$line" | sed 's/.*Destination: //')
-                update_loading_bar "$count" "$total"
-                printf "\nDownloading: %s\n" "$song_name"
+                local song_name=$(echo "$line" | sed 's/.*Destination: //; s/.*\/\(.*\)\.[^.]*$/\1/')
+                update_loading_bar "$count" "$total" "$song_name".
             fi
         done
 
