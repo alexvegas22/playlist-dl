@@ -1,50 +1,76 @@
 #!/usr/bin/env bash
 
-download_playlist(){
-    bar_length=40  # Total length of the loading bar
-    for i in $(seq 1 $bar_length); do
-	# Calculate progress
-	progress=$((i * 100 / bar_length))
-	
-	# Build the bar
-	bar=$(printf "%-${bar_length}s" "#" | tr ' ' '#')
-	printf "\r[%-${bar_length}s] %d%%" "${bar:0:i}" "$progress"
-	
-	sleep 0.1  # Simulate work
-    done
-    echo
+# Function to display a loading bar
+update_loading_bar() {
+    local current=$1
+    local total=$2
+    local bar_length=40
+    local progress=$((current * 100 / total))
+    local num_hash=$((current * bar_length / total))
+    local bar=$(printf "%-${bar_length}s" "#" | tr ' ' '#')
 
-    echo "Downloading playlist $playlist"
-    url=$2
-    mkdir -p "$playlist"
-    echo "Creating directory '$playlist'"
-    yt-dlp --ignore-errors --format bestaudio --extract-audio --audio-format mp3 --audio-quality 160K --output "%(playlist_title)s/%(title)s.%(ext)s" --yes-playlist "$url"
-    
+    # Display the loading bar and progress percentage
+    printf "\r[%-${bar_length}s] %d%% (%d/%d)" "${bar:0:num_hash}" "$progress" "$current" "$total"
 }
 
+# Function to download a playlist
+download_playlist() {
+    local playlist="$1"
+    local url="$2"
+    
+    echo "Fetching playlist information..."
+    mkdir -p "$playlist"
+
+    # Get the total number of videos in the playlist
+    local total=$(yt-dlp --flat-playlist --print "%(id)s" "$url" | wc -l)
+    echo "Found $total videos in playlist '$playlist'."
+
+    # Download the playlist and track progress
+    local count=0
+    yt-dlp --ignore-errors --format bestaudio --extract-audio \
+        --audio-format mp3 --audio-quality 160K \
+        --output "$playlist/%(title)s.%(ext)s" --yes-playlist "$url" \
+        | while IFS= read -r line; do
+            if [[ "$line" == "[download] Destination:"* ]]; then
+                count=$((count + 1))
+                local song_name=$(echo "$line" | sed 's/.*Destination: //')
+                update_loading_bar "$count" "$total"
+                printf "\nDownloading: %s\n" "$song_name"
+            fi
+        done
+
+    echo -e "\nPlaylist download completed."
+}
+
+# Parse command-line options
 while getopts 'p:f:h' OPTION; do
     case "$OPTION" in
-	p)	    
-	    if [ $# -eq 2 ]; then
-		playlist=$(yt-dlp  --no-warnings --flat-playlist --print "%(playlist_title)s" $2 2>/dev/null | head -1)
-		download_playlist
-	    fi
-	    ;;
-	f)
-	    echo "Downloading playlist from file ${OPTARG}"
-	    while read -r playlist url; do
-		download_playlist
-	    done < ${OPTARG}
-	    ;;
-	h)
-	    echo "script usage: $(basename \$0) [-p foldername url] [-h] [-f file]" >&1
-	    exit 1
-	    ;;
-	?)
-	echo "script usage: $(basename \$0) [-p foldername url] [-h] [-f file]" >&2
-	exit 1
-	;;
+        p)
+            if [ $# -eq 2 ]; then
+                playlist=$(yt-dlp --no-warnings --flat-playlist --print "%(playlist_title)s" "$2" 2>/dev/null | head -1)
+                download_playlist "$playlist" "$2"
+            else
+                echo "Error: Missing arguments for -p option."
+                exit 1
+            fi
+            ;;
+        f)
+            echo "Downloading playlists from file ${OPTARG}"
+            while IFS= read -r playlist url; do
+                download_playlist "$playlist" "$url"
+            done < "$OPTARG"
+            ;;
+        h)
+            echo "Usage: $(basename "$0") [-p url] [-f file] [-h]"
+            echo "  -p: Download a single playlist from URL"
+            echo "  -f: Download multiple playlists from a file (format: 'playlist_name url')"
+            echo "  -h: Display this help message"
+            exit 0
+            ;;
+        ?)
+            echo "Usage: $(basename "$0") [-p url] [-f file] [-h]" >&2
+            exit 1
+            ;;
     esac
 done
-shift "$ (($OPTIND -1))"
-
+shift $((OPTIND - 1))
