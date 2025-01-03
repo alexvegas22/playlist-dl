@@ -2,7 +2,7 @@
 
 # Function to display a loading bar
 update_loading_bar() {
-    local current=$2
+    local current=$1
     local total=$2
     local song_name=$3
     local bar_length=38
