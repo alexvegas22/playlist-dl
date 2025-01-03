@@ -42,6 +42,8 @@ download_playlist() {
     echo -e "\nPlaylist download completed."
 }
 
+trap 'echo -e "\nDownload interrupted. Exiting..."; exit 1' INT
+
 # Parse command-line options
 while getopts 'p:f:h' OPTION; do
     case "$OPTION" in
