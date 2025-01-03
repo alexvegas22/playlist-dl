@@ -16,16 +16,8 @@ This script automates the process of downloading YouTube playlists as audio file
 
 ## Requirements
 
-1. **Bash**: Ensure you have a Unix-like shell environment.
-2. **yt-dlp**: Install it using:
-   ```bash
-   pip install yt-dlp
-   ```
-3. **FFmpeg**: Required for audio extraction. Install it using your system’s package manager, e.g.,:
-   ```bash
-   sudo apt install ffmpeg  # For Debian/Ubuntu
-   brew install ffmpeg      # For macOS
-   ```
+1. **yt-dlp** 
+2. **FFmpeg**
 
 ---
 
@@ -81,23 +73,6 @@ MyPlaylist2 https://www.youtube.com/playlist?list=PLAYLIST_ID_2
 
 ---
 
-## How It Works
-
-1. **Playlist Fetching**:
-
-   - The script fetches the playlist title and the total number of videos.
-   - Creates a directory named after the playlist to store downloaded files.
-
-2. **Dynamic Progress Bar**:
-
-   - Displays a progress bar based on the number of files downloaded.
-   - Shows the current song being downloaded below the progress bar.
-
-3. **Output Management**:
-
-   - Suppresses unnecessary `yt-dlp` output for a cleaner terminal display.
-
----
 
 ## Troubleshooting
 
