@@ -26,7 +26,7 @@ This script automates the process of downloading YouTube playlists as audio file
 ### Basic Syntax
 
 ```bash
-./script.sh [-p url] [-f file] [-h]
+./dl-playlist [-p url] [-f file] [-h]
 ```
 
 ### Options
@@ -53,7 +53,7 @@ This script automates the process of downloading YouTube playlists as audio file
 To download a playlist from a URL:
 
 ```bash
-./script.sh -p "https://www.youtube.com/playlist?list=YOUR_PLAYLIST_ID"
+./dl-playlist -p "https://www.youtube.com/playlist?list=YOUR_PLAYLIST_ID"
 ```
 
 ### Download Multiple Playlists
@@ -61,7 +61,7 @@ To download a playlist from a URL:
 To download multiple playlists listed in a file:
 
 ```bash
-./script.sh -f playlists.txt
+./dl-playlist -f playlists.txt
 ```
 
 Example `playlists.txt`:
