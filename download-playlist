@@ -31,6 +31,7 @@ download_playlist() {
         --audio-format mp3 --audio-quality 160K \
         --output "$playlist/%(title)s.%(ext)s" --yes-playlist "$url" \
         2>/dev/null | while IFS= read -r line; do
+            # Debugging line output
             if [[ "$line" == "[download] Destination:"* ]]; then
                 count=$((count + 1))
                 local song_name=$(echo "$line" | sed 's/.*Destination: //')
@@ -42,6 +43,7 @@ download_playlist() {
     echo -e "\nPlaylist download completed."
 }
 
+# Trap interrupt signals (Ctrl+C) and display a message
 trap 'echo -e "\nDownload interrupted. Exiting..."; exit 1' INT
 
 # Parse command-line options
