@@ -22,7 +22,7 @@ download_playlist() {
     mkdir -p "$playlist"
 
     # Get the total number of videos in the playlist
-    local total=$(yt-dlp --flat-playlist --print "%(id)s" "$url" | wc -l)
+    local total=$(yt-dlp --flat-playlist --print "%(id)s" "$url" 2>/dev/null | wc -l)
     echo "Found $total videos in playlist '$playlist'."
 
     # Download the playlist and track progress
@@ -30,7 +30,7 @@ download_playlist() {
     yt-dlp --ignore-errors --format bestaudio --extract-audio \
         --audio-format mp3 --audio-quality 160K \
         --output "$playlist/%(title)s.%(ext)s" --yes-playlist "$url" \
-        | while IFS= read -r line; do
+        2>/dev/null | while IFS= read -r line; do
             if [[ "$line" == "[download] Destination:"* ]]; then
                 count=$((count + 1))
                 local song_name=$(echo "$line" | sed 's/.*Destination: //')
